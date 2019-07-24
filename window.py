@@ -168,12 +168,11 @@ class Window:
         prev_time = start_time
         frame_time = 0
 
-        # gl.glClearColor(*clear_color)
         while not self.is_closing:
-            # gl.glClear(clear)
             current_time, prev_time = time.time(), current_time
             frame_time = max(current_time - prev_time, 1 / 1000)
 
+            self.on_input(self.window)
             self.on_draw(current_time - start_time, frame_time)
             self.swap_buffers()
 
@@ -200,7 +199,7 @@ class Window:
 
         if action == glfw.PRESS:
             self.on_key_pressed(key, mods)
-        else:
+        if action == glfw.RELEASE:
             self.on_key_released(key, mods)
 
     def mouse_event_callback(self, window, xpos, ypos):
@@ -249,6 +248,9 @@ class Window:
         pass
 
     def on_draw(self, time, frame_time):
+        pass
+
+    def on_input(self, window):
         pass
 
     def on_resize(self, width, height):
