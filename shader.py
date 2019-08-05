@@ -5,10 +5,10 @@ from OpenGL.GL import shaders
 class Shader:
 
     def __init__(self, vertex_shader_path,
-                 fragment_shader_path,
-                 geometry_shader_path=None):
+                       fragment_shader_path,
+                       geometry_shader_path=None):
 
-        vertex_shader = self._load(vertex_shader_path)
+        vertex_shader   = self._load(vertex_shader_path)
         fragment_shader = self._load(fragment_shader_path)
         self.ID = shaders.compileProgram(
             shaders.compileShader(vertex_shader,    gl.GL_VERTEX_SHADER),
@@ -32,3 +32,6 @@ class Shader:
 
     def set_float(self, name, value):
         gl.glUniform1f(gl.glGetUniformLocation(self.ID, name), value)
+
+    def set_mat4(self, name, value):
+        gl.glUniformMatrix4fv(gl.glGetUniformLocation(self.ID, name), 1, gl.GL_FALSE, value)
