@@ -5,7 +5,6 @@ sys.path.append(os.pardir)
 import window
 import shader
 import OpenGL.GL as gl
-import itertools as it
 from PIL import Image
 from ctypes import c_uint, c_uint8, c_float, sizeof, c_void_p
 
@@ -65,9 +64,7 @@ class Window(window.Window):
         gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
 
         img = Image.open(get_texture('container.jpg'))
-        data = list(it.chain.from_iterable(img.getdata()))
-        img_data = (c_uint8 * len(data))(*data)
-        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img.width, img.height, 0, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, img_data)
+        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img.width, img.height, 0, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, img.tobytes())
         gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
 
     def on_draw(self, time, frame_time):

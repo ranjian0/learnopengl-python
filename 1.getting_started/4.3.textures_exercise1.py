@@ -4,7 +4,6 @@ sys.path.append(os.pardir)
 
 import window
 import shader
-import itertools as it
 import OpenGL.GL as gl
 from PIL import Image
 from ctypes import c_uint, c_uint8, c_float, sizeof, c_void_p
@@ -64,9 +63,7 @@ class Window(window.Window):
         gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
 
         img = Image.open(get_texture('container.jpg')).transpose(Image.FLIP_TOP_BOTTOM)
-        data = list(it.chain.from_iterable(img.getdata()))
-        img_data = (c_uint8 * len(data))(*data)
-        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img.width, img.height, 0, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, img_data)
+        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img.width, img.height, 0, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, img.tobytes())
         gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
 
         # -- load texture 2
@@ -80,9 +77,7 @@ class Window(window.Window):
         gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
 
         img = Image.open(get_texture('awesomeface.png')).transpose(Image.FLIP_TOP_BOTTOM)
-        data = list(it.chain.from_iterable(img.getdata()))
-        img_data = (c_uint8 * len(data))(*data)
-        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img.width, img.height, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, img_data)
+        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img.width, img.height, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, img.tobytes())
         gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
 
         self.shader.use()
