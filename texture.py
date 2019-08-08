@@ -1,9 +1,7 @@
 import os
-import itertools as it
 import OpenGL.GL as gl
 
 from PIL import Image
-from ctypes import c_uint8
 
 RESOURCES = os.path.abspath('resources')
 TEXTURES_DIR = os.path.join(RESOURCES, 'textures')
@@ -15,10 +13,7 @@ def get_image_data(file_path, flip_y=False, flip_x=False):
         img = img.transpose(Image.FLIP_TOP_BOTTOM)
     if flip_x:
         img = img.transpose(Image.FLIP_LEFT_RIGHT)
-
-    data = list(it.chain.from_iterable(img.getdata()))
-    img_data = (c_uint8 * len(data))(*data)
-    return img, img_data
+    return img, img.tobytes()
 
 
 def load_texture(filename,
