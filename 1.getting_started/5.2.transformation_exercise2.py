@@ -9,7 +9,7 @@ import shader
 import OpenGL.GL as gl
 from PIL import Image
 from pyrr import Matrix44
-from ctypes import c_uint, c_uint8, c_float, sizeof, c_void_p
+from ctypes import c_uint, c_float, sizeof, c_void_p
 
 RESOURCES_DIR = os.path.join(os.path.abspath(os.pardir), 'resources')
 get_texture = lambda filename : os.path.join(RESOURCES_DIR, 'textures', filename)
