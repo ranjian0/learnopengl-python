@@ -125,6 +125,7 @@ class Window:
         self.frames = 0
         glfw.set_key_callback(self.window, self.key_event_callback)
         glfw.set_cursor_pos_callback(self.window, self.mouse_event_callback)
+        glfw.set_scroll_callback(self.window, self.scroll_callback)
         glfw.set_mouse_button_callback(self.window, self.mouse_button_callback)
         glfw.set_window_size_callback(self.window, self.window_resize_callback)
 
@@ -215,6 +216,9 @@ class Window:
         # screen coordinates relative to the top-left corner
         self.on_mouse_event(xpos, ypos)
 
+    def scroll_callback(self, window, dx, dy):
+        self.on_mouse_scroll(dx, dy)
+
     def mouse_button_callback(self, window, button, action, mods):
         """
         Handle mouse button events and forward them to the example
@@ -260,6 +264,9 @@ class Window:
         pass
 
     def on_key_released(self, key, mods):
+        pass
+
+    def on_mouse_scroll(self, dx, dy):
         pass
 
     def on_mouse_event(self, xpos, ypos):
