@@ -134,7 +134,7 @@ class Window(window.Window):
         self.shader.set_int("texture2", 1)
 
         projection = Matrix44.perspective_projection(45, self.width/self.height, 0.1, 100.0)
-        self.shader.set_mat4('projection', projection.astype('f4').tobytes())
+        self.shader.set_mat4('projection', projection)
 
     def on_draw(self, time, frame_time):
         current_frame = glfw.get_time()
@@ -152,7 +152,7 @@ class Window(window.Window):
 
         self.shader.use()
         view = Matrix44.look_at(self.camera_pos, self.camera_pos + self.camera_front, self.camera_up)
-        self.shader.set_mat4('view', view.astype('f4').tobytes())
+        self.shader.set_mat4('view', view)
 
         gl.glBindVertexArray(self.vao)
         for idx, position in enumerate(self.cube_positions):
@@ -160,7 +160,7 @@ class Window(window.Window):
             rotation = matrix44.create_from_axis_rotation([1.0, 0.3, 0.5], math.radians(angle))
             translation = Matrix44.from_translation(position)
             model = translation * rotation
-            self.shader.set_mat4('model', model.astype('f4').tobytes())
+            self.shader.set_mat4('model', model)
             gl.glDrawArrays(gl.GL_TRIANGLES, 0, 36)
 
     def on_resize(self, w, h):

@@ -125,9 +125,9 @@ class Window(window.Window):
         view = Matrix44.from_translation([0, 0, -3])
         projection = Matrix44.perspective_projection(45, self.width/self.height, 0.1, 100.0)
 
-        self.shader.set_mat4('view', view.astype('f4').tobytes())
-        self.shader.set_mat4('model', model.astype('f4').tobytes())
-        self.shader.set_mat4('projection', projection.astype('f4').tobytes())
+        self.shader.set_mat4('view', view)
+        self.shader.set_mat4('model', model)
+        self.shader.set_mat4('projection', projection)
         gl.glBindVertexArray(self.vao)
         gl.glDrawArrays(gl.GL_TRIANGLES, 0, 36)
 

@@ -135,20 +135,20 @@ def main():
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         lighting_shader.use()
-        lighting_shader.set_vec3("objectColor", Vector3([1.0, 0.5, 0.31]).astype('f4').tobytes())
-        lighting_shader.set_vec3("lightColor", Vector3([1.0, 1.0, 1.0]).astype('f4').tobytes())
-        lighting_shader.set_vec3("lightPos", light_pos.astype('f4').tobytes())
-        lighting_shader.set_vec3("viewPos", camera.position.astype('f4').tobytes())
+        lighting_shader.set_vec3("objectColor", Vector3([1.0, 0.5, 0.31]))
+        lighting_shader.set_vec3("lightColor", Vector3([1.0, 1.0, 1.0]))
+        lighting_shader.set_vec3("lightPos", light_pos)
+        lighting_shader.set_vec3("viewPos", camera.position)
 
         # -- view.projection transformations
         projection = Matrix44.perspective_projection(camera.zoom, SRC_WIDTH/SRC_HEIGHT, 0.1, 100.0)
         view = camera.get_view_matrix()
-        lighting_shader.set_mat4("projection", projection.astype('f4').tobytes())
-        lighting_shader.set_mat4("view", view.astype('f4').tobytes())
+        lighting_shader.set_mat4("projection", projection)
+        lighting_shader.set_mat4("view", view)
 
         # -- world transformation
         model = Matrix44.identity()
-        lighting_shader.set_mat4("model", model.astype('f4').tobytes())
+        lighting_shader.set_mat4("model", model)
 
         # -- render cube
         gl.glBindVertexArray(cube_vao)
@@ -156,13 +156,13 @@ def main():
 
         # -- draw lamp object
         lamp_shader.use()
-        lamp_shader.set_mat4("projection", projection.astype('f4').tobytes())
-        lamp_shader.set_mat4("view", view.astype('f4').tobytes())
+        lamp_shader.set_mat4("projection", projection)
+        lamp_shader.set_mat4("view", view)
 
         model = Matrix44.identity()
         model *= Matrix44.from_translation(light_pos)
         model *= Matrix44.from_scale(Vector3([.2, .2, .2]))
-        lamp_shader.set_mat4("model", model.astype('f4').tobytes())
+        lamp_shader.set_mat4("model", model)
 
         gl.glBindVertexArray(light_vao)
         gl.glDrawArrays(gl.GL_TRIANGLES, 0, 36)

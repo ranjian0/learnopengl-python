@@ -97,7 +97,7 @@ class Window(window.Window):
         transform = translation * rotation
 
         self.shader.use()
-        self.shader.set_mat4('transform', transform.astype('f4').tobytes())
+        self.shader.set_mat4('transform', transform)
         gl.glBindVertexArray(self.vao)
         gl.glDrawElements(gl.GL_TRIANGLES, 6, gl.GL_UNSIGNED_INT, c_void_p(0))
 
