@@ -1,6 +1,5 @@
 import os
 import sys
-import math
 import glfw
 import OpenGL.GL as gl
 from pyrr import Vector3, Matrix44
