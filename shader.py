@@ -33,5 +33,17 @@ class Shader:
     def set_float(self, name, value):
         gl.glUniform1f(gl.glGetUniformLocation(self.ID, name), value)
 
+    def set_vec2(self, name, value):
+        gl.glUniform2fv(gl.glGetUniformLocation(self.ID, name), 1, value)
+
+    def set_vec3(self, name, value):
+        gl.glUniform3fv(gl.glGetUniformLocation(self.ID, name), 1, value)
+
+    def set_vec4(self, name, value):
+        gl.glUniform4fv(gl.glGetUniformLocation(self.ID, name), 1, value)
+
+    def set_mat3(self, name, value):
+        gl.glUniformMatrix3fv(gl.glGetUniformLocation(self.ID, name), 1, gl.GL_FALSE, value)
+
     def set_mat4(self, name, value):
         gl.glUniformMatrix4fv(gl.glGetUniformLocation(self.ID, name), 1, gl.GL_FALSE, value)
