@@ -1,9 +1,7 @@
-import os
 import sys
 import math
 import glfw
 import OpenGL.GL as gl
-from PIL import Image
 from pyrr import Vector3, Matrix44, matrix44
 from ctypes import c_float, c_uint, sizeof, c_void_p, pointer
 
@@ -11,9 +9,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 from lib.shader import Shader
 from lib.camera import Camera, CameraMovement
-
-RESOURCES_DIR = os.path.join(os.path.abspath(os.pardir), 'resources')
-
+from lib.texture import load_texture
 
 # -- settings
 SRC_WIDTH = 800
@@ -267,30 +263,6 @@ def mouse_callback(window, xpos, ypos):
 
 def scroll_callback(window, xoffset, yoffset):
     camera.process_mouse_scroll(yoffset)
-
-
-def load_texture(path):
-    textureID = gl.glGenTextures(1)
-    img = Image.open(os.path.join(RESOURCES_DIR, 'textures', path))
-
-    format_ = {
-        1 : gl.GL_RED,
-        3 : gl.GL_RGB,
-        4 : gl.GL_RGBA,
-    }.get(len(img.getbands()))
-
-    gl.glBindTexture(gl.GL_TEXTURE_2D, textureID)
-    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, format_, img.width, img.height, 0, format_, gl.GL_UNSIGNED_BYTE, img.tobytes())
-    gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
-
-    # -- texture wrapping
-    gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
-    gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-    # -- texture filterting
-    gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR_MIPMAP_LINEAR)
-    gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
-
-    return textureID
 
 
 if __name__ == '__main__':
