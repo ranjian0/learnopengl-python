@@ -1,13 +1,13 @@
-import os
 import sys
 import glfw
 import OpenGL.GL as gl
 from pyrr import Vector3, Matrix44
 from ctypes import c_float, c_uint, sizeof, c_void_p, pointer
 
-sys.path.append(os.pardir)
-from shader import Shader
-from camera import Camera, CameraMovement
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+from lib.shader import Shader
+from lib.camera import Camera, CameraMovement
 
 # -- settings
 SRC_WIDTH = 800

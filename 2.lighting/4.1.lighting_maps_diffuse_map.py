@@ -6,9 +6,10 @@ from PIL import Image
 from pyrr import Vector3, Matrix44
 from ctypes import c_float, c_uint, sizeof, c_void_p, pointer
 
-sys.path.append(os.pardir)
-from shader import Shader
-from camera import Camera, CameraMovement
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+from lib.shader import Shader
+from lib.camera import Camera, CameraMovement
 
 RESOURCES_DIR = os.path.join(os.path.abspath(os.pardir), 'resources')
 get_texture = lambda filename : os.path.join(RESOURCES_DIR, 'textures', filename)
