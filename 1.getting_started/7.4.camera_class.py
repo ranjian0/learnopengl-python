@@ -2,202 +2,239 @@ import os
 import sys
 import math
 import glfw
-sys.path.append(os.pardir)
-
-import window
-import shader
-import camera
 import OpenGL.GL as gl
 from PIL import Image
-from camera import CameraMovement
+from pathlib import Path
 from pyrr import Matrix44, matrix44, Vector3
 from ctypes import c_float, sizeof, c_void_p
+
+sys.path.append(str(Path(__file__).parent.parent))
+from lib.shader import Shader
+from lib.camera import Camera, CameraMovement
 
 RESOURCES_DIR = os.path.join(os.path.abspath(os.pardir), 'resources')
 get_texture = lambda filename : os.path.join(RESOURCES_DIR, 'textures', filename)
 
+width, height = 800, 600
 
-class Window(window.Window):
+delta_time = 0.0
+last_frame = 0.0
 
-    def setup(self):
+first_mouse = True
+last_x = 800 / 2
+last_y = 300 / 2
+camera = None
 
-        self.camera = camera.Camera(position=Vector3([0.0, 0.0, 3.0]))
-        self.first_mouse = True
-        self.last_x = 800 / 2
-        self.last_y = 300 / 2
 
-        self.delta_time = 0.0
-        self.last_frame = 0.0
+def main():
+    global delta_time, last_frame, camera
 
-        gl.glEnable(gl.GL_DEPTH_TEST)
-        self.shader = shader.Shader('shaders/7.1.camera.vs', 'shaders/7.1.camera.fs')
+    glfw.init()
+    glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+    glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
 
-        vertices = [
-             # positions      tex_coords
-            -0.5, -0.5, -0.5,  0.0, 0.0,
-             0.5, -0.5, -0.5,  1.0, 0.0,
-             0.5,  0.5, -0.5,  1.0, 1.0,
-             0.5,  0.5, -0.5,  1.0, 1.0,
-            -0.5,  0.5, -0.5,  0.0, 1.0,
-            -0.5, -0.5, -0.5,  0.0, 0.0,
+    window = glfw.create_window(800, 600, "LearnOpenGL", None, None)
+    if not window:
+        print("Window Creation failed!")
+        glfw.terminate()
 
-            -0.5, -0.5,  0.5,  0.0, 0.0,
-             0.5, -0.5,  0.5,  1.0, 0.0,
-             0.5,  0.5,  0.5,  1.0, 1.0,
-             0.5,  0.5,  0.5,  1.0, 1.0,
-            -0.5,  0.5,  0.5,  0.0, 1.0,
-            -0.5, -0.5,  0.5,  0.0, 0.0,
+    glfw.make_context_current(window)
+    glfw.set_window_size_callback(window, on_resize)
+    glfw.set_cursor_pos_callback(window, on_mouse_event)
+    glfw.set_scroll_callback(window, on_mouse_scroll)
 
-            -0.5,  0.5,  0.5,  1.0, 0.0,
-            -0.5,  0.5, -0.5,  1.0, 1.0,
-            -0.5, -0.5, -0.5,  0.0, 1.0,
-            -0.5, -0.5, -0.5,  0.0, 1.0,
-            -0.5, -0.5,  0.5,  0.0, 0.0,
-            -0.5,  0.5,  0.5,  1.0, 0.0,
+    glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
-             0.5,  0.5,  0.5,  1.0, 0.0,
-             0.5,  0.5, -0.5,  1.0, 1.0,
-             0.5, -0.5, -0.5,  0.0, 1.0,
-             0.5, -0.5, -0.5,  0.0, 1.0,
-             0.5, -0.5,  0.5,  0.0, 0.0,
-             0.5,  0.5,  0.5,  1.0, 0.0,
+    gl.glEnable(gl.GL_DEPTH_TEST)
+    camera = Camera(position=Vector3([0.0, 0.0, 3.0]))
+    shader = Shader('shaders/7.1.camera.vs', 'shaders/7.1.camera.fs')
 
-            -0.5, -0.5, -0.5,  0.0, 1.0,
-             0.5, -0.5, -0.5,  1.0, 1.0,
-             0.5, -0.5,  0.5,  1.0, 0.0,
-             0.5, -0.5,  0.5,  1.0, 0.0,
-            -0.5, -0.5,  0.5,  0.0, 0.0,
-            -0.5, -0.5, -0.5,  0.0, 1.0,
+    vertices = [
+     # positions      tex_coords
+    -0.5, -0.5, -0.5,  0.0, 0.0,
+     0.5, -0.5, -0.5,  1.0, 0.0,
+     0.5,  0.5, -0.5,  1.0, 1.0,
+     0.5,  0.5, -0.5,  1.0, 1.0,
+    -0.5,  0.5, -0.5,  0.0, 1.0,
+    -0.5, -0.5, -0.5,  0.0, 0.0,
 
-            -0.5,  0.5, -0.5,  0.0, 1.0,
-             0.5,  0.5, -0.5,  1.0, 1.0,
-             0.5,  0.5,  0.5,  1.0, 0.0,
-             0.5,  0.5,  0.5,  1.0, 0.0,
-            -0.5,  0.5,  0.5,  0.0, 0.0,
-            -0.5,  0.5, -0.5,  0.0, 1.0
-        ]
-        vertices = (c_float * len(vertices))(*vertices)
+    -0.5, -0.5,  0.5,  0.0, 0.0,
+     0.5, -0.5,  0.5,  1.0, 0.0,
+     0.5,  0.5,  0.5,  1.0, 1.0,
+     0.5,  0.5,  0.5,  1.0, 1.0,
+    -0.5,  0.5,  0.5,  0.0, 1.0,
+    -0.5, -0.5,  0.5,  0.0, 0.0,
 
-        self.cube_positions = [
-            ( 0.0,  0.0,  0.0),
-            ( 2.0,  5.0, -15.0),
-            (-1.5, -2.2, -2.5),
-            (-3.8, -2.0, -12.3),
-            ( 2.4, -0.4, -3.5),
-            (-1.7,  3.0, -7.5),
-            ( 1.3, -2.0, -2.5),
-            ( 1.5,  2.0, -2.5),
-            ( 1.5,  0.2, -1.5),
-            (-1.3,  1.0, -1.5)
-        ]
+    -0.5,  0.5,  0.5,  1.0, 0.0,
+    -0.5,  0.5, -0.5,  1.0, 1.0,
+    -0.5, -0.5, -0.5,  0.0, 1.0,
+    -0.5, -0.5, -0.5,  0.0, 1.0,
+    -0.5, -0.5,  0.5,  0.0, 0.0,
+    -0.5,  0.5,  0.5,  1.0, 0.0,
 
-        self.vao = gl.glGenVertexArrays(1)
-        gl.glBindVertexArray(self.vao)
+     0.5,  0.5,  0.5,  1.0, 0.0,
+     0.5,  0.5, -0.5,  1.0, 1.0,
+     0.5, -0.5, -0.5,  0.0, 1.0,
+     0.5, -0.5, -0.5,  0.0, 1.0,
+     0.5, -0.5,  0.5,  0.0, 0.0,
+     0.5,  0.5,  0.5,  1.0, 0.0,
 
-        vbo = gl.glGenBuffers(1)
-        gl.glBindBuffer(gl.GL_ARRAY_BUFFER, vbo)
-        gl.glBufferData(gl.GL_ARRAY_BUFFER, sizeof(vertices), vertices, gl.GL_STATIC_DRAW)
+    -0.5, -0.5, -0.5,  0.0, 1.0,
+     0.5, -0.5, -0.5,  1.0, 1.0,
+     0.5, -0.5,  0.5,  1.0, 0.0,
+     0.5, -0.5,  0.5,  1.0, 0.0,
+    -0.5, -0.5,  0.5,  0.0, 0.0,
+    -0.5, -0.5, -0.5,  0.0, 1.0,
 
-        gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE, 5 * sizeof(c_float), c_void_p(0))
-        gl.glEnableVertexAttribArray(0)
+    -0.5,  0.5, -0.5,  0.0, 1.0,
+     0.5,  0.5, -0.5,  1.0, 1.0,
+     0.5,  0.5,  0.5,  1.0, 0.0,
+     0.5,  0.5,  0.5,  1.0, 0.0,
+    -0.5,  0.5,  0.5,  0.0, 0.0,
+    -0.5,  0.5, -0.5,  0.0, 1.0
+    ]
+    vertices = (c_float * len(vertices))(*vertices)
 
-        gl.glVertexAttribPointer(1, 2, gl.GL_FLOAT, gl.GL_FALSE, 5 * sizeof(c_float), c_void_p(3 * sizeof(c_float)))
-        gl.glEnableVertexAttribArray(1)
+    cube_positions = [
+        ( 0.0,  0.0,  0.0),
+        ( 2.0,  5.0, -15.0),
+        (-1.5, -2.2, -2.5),
+        (-3.8, -2.0, -12.3),
+        ( 2.4, -0.4, -3.5),
+        (-1.7,  3.0, -7.5),
+        ( 1.3, -2.0, -2.5),
+        ( 1.5,  2.0, -2.5),
+        ( 1.5,  0.2, -1.5),
+        (-1.3,  1.0, -1.5)
+    ]
 
-        # -- load texture 1
-        self.texture1 = gl.glGenTextures(1)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture1)
-        # -- texture wrapping
-        gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
-        gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-        # -- texture filterting
-        gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
-        gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
+    vao = gl.glGenVertexArrays(1)
+    gl.glBindVertexArray(vao)
 
-        img = Image.open(get_texture('container.jpg')).transpose(Image.FLIP_TOP_BOTTOM)
-        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img.width, img.height, 0, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, img.tobytes())
-        gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
+    vbo = gl.glGenBuffers(1)
+    gl.glBindBuffer(gl.GL_ARRAY_BUFFER, vbo)
+    gl.glBufferData(gl.GL_ARRAY_BUFFER, sizeof(vertices), vertices, gl.GL_STATIC_DRAW)
 
-        # -- load texture 2
-        self.texture2 = gl.glGenTextures(1)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture2)
-        # -- texture wrapping
-        gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
-        gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
-        # -- texture filterting
-        gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
-        gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
+    gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE, 5 * sizeof(c_float), c_void_p(0))
+    gl.glEnableVertexAttribArray(0)
 
-        img = Image.open(get_texture('awesomeface.png')).transpose(Image.FLIP_TOP_BOTTOM)
-        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img.width, img.height, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, img.tobytes())
-        gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
+    gl.glVertexAttribPointer(1, 2, gl.GL_FLOAT, gl.GL_FALSE, 5 * sizeof(c_float), c_void_p(3 * sizeof(c_float)))
+    gl.glEnableVertexAttribArray(1)
 
-        self.shader.use()
-        self.shader.set_int("texture1", 0)
-        self.shader.set_int("texture2", 1)
+    # -- load texture 1
+    texture1 = gl.glGenTextures(1)
+    gl.glBindTexture(gl.GL_TEXTURE_2D, texture1)
+    # -- texture wrapping
+    gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
+    gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
+    # -- texture filterting
+    gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
+    gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
 
-    def on_draw(self, time, frame_time):
+    img = Image.open(get_texture('container.jpg')).transpose(Image.FLIP_TOP_BOTTOM)
+    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img.width, img.height, 0, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, img.tobytes())
+    gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
+
+    # -- load texture 2
+    texture2 = gl.glGenTextures(1)
+    gl.glBindTexture(gl.GL_TEXTURE_2D, texture2)
+    # -- texture wrapping
+    gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT)
+    gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT)
+    # -- texture filterting
+    gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
+    gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
+
+    img = Image.open(get_texture('awesomeface.png'))
+    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img.width, img.height, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, img.tobytes())
+    gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
+
+    shader.use()
+    shader.set_int("texture1", 0)
+    shader.set_int("texture2", 1)
+
+    projection = Matrix44.perspective_projection(45, width/height, 0.1, 100.0)
+    shader.set_mat4('projection', projection)
+
+    while not glfw.window_should_close(window):
         current_frame = glfw.get_time()
-        self.delta_time = current_frame - self.last_frame
-        self.last_frame = current_frame
+        delta_time = current_frame - last_frame
+        last_frame = current_frame
 
+        process_input(window)
+
+        gl.glClearColor(.2, .3, .3, 1.0)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-        gl.glClearColor(.2, .3, .3, 1)
 
         gl.glActiveTexture(gl.GL_TEXTURE0)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture1)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, texture1)
         gl.glActiveTexture(gl.GL_TEXTURE1)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture2)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, texture2)
 
-        self.shader.use()
+        shader.use()
+        projection = Matrix44.perspective_projection(camera.zoom, width/height, 0.1, 100.0)
+        shader.set_mat4('projection', projection)
 
-        projection = Matrix44.perspective_projection(self.camera.zoom, self.width/self.height, 0.1, 100.0)
-        self.shader.set_mat4('projection', projection)
+        view = camera.get_view_matrix()
+        shader.set_mat4('view', view)
 
-        view = self.camera.get_view_matrix()
-        self.shader.set_mat4('view', view)
-
-        gl.glBindVertexArray(self.vao)
-        for idx, position in enumerate(self.cube_positions):
+        gl.glBindVertexArray(vao)
+        for idx, position in enumerate(cube_positions):
             angle = 20.0 * idx
             rotation = matrix44.create_from_axis_rotation([1.0, 0.3, 0.5], math.radians(angle))
             translation = Matrix44.from_translation(position)
             model = translation * rotation
-            self.shader.set_mat4('model', model)
+            shader.set_mat4('model', model)
             gl.glDrawArrays(gl.GL_TRIANGLES, 0, 36)
 
-    def on_resize(self, w, h):
-        gl.glViewport(0, 0, w, h)
+        glfw.poll_events()
+        glfw.swap_buffers(window)
 
-    def on_input(self, window):
+    gl.glDeleteVertexArrays(1, id(vao))
+    gl.glDeleteBuffers(1, id(vbo))
+    glfw.terminate()
 
-        if glfw.get_key(window, glfw.KEY_W) == glfw.PRESS:
-            self.camera.process_keyboard(CameraMovement.FORWARD, self.delta_time)
-        if glfw.get_key(window, glfw.KEY_S) == glfw.PRESS:
-            self.camera.process_keyboard(CameraMovement.BACKWARD, self.delta_time)
 
-        if glfw.get_key(window, glfw.KEY_A) == glfw.PRESS:
-            self.camera.process_keyboard(CameraMovement.LEFT, self.delta_time)
-        if glfw.get_key(window, glfw.KEY_D) == glfw.PRESS:
-            self.camera.process_keyboard(CameraMovement.RIGHT, self.delta_time)
+def on_resize(window, w, h):
+    gl.glViewport(0, 0, w, h)
 
-    def on_mouse_scroll(self, dx, dy):
-        self.camera.process_mouse_scroll(dy)
 
-    def on_mouse_event(self, xpos, ypos):
-        if self.first_mouse:
-            self.last_x, self.last_y = xpos, ypos
-            self.first_mouse = False
+def process_input(window):
+    global camera, delta_time
 
-        xoffset = xpos - self.last_x
-        yoffset = self.last_y - ypos  # XXX Note Reversed (y-coordinates go from bottom to top)
-        self.last_x = xpos
-        self.last_y = ypos
+    if glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS:
+        glfw.set_window_should_close(window, True)
 
-        self.camera.process_mouse_movement(xoffset, yoffset)
+    if glfw.get_key(window, glfw.KEY_W) == glfw.PRESS:
+        camera.process_keyboard(CameraMovement.FORWARD, delta_time)
+    if glfw.get_key(window, glfw.KEY_S) == glfw.PRESS:
+        camera.process_keyboard(CameraMovement.BACKWARD, delta_time)
+
+    if glfw.get_key(window, glfw.KEY_A) == glfw.PRESS:
+        camera.process_keyboard(CameraMovement.LEFT, delta_time)
+    if glfw.get_key(window, glfw.KEY_D) == glfw.PRESS:
+        camera.process_keyboard(CameraMovement.RIGHT, delta_time)
+
+
+def on_mouse_scroll(window, dx, dy):
+    global camera
+    camera.process_mouse_scroll(dy)
+
+
+def on_mouse_event(window, xpos, ypos):
+    global first_mouse, last_x, last_y, camera
+    if first_mouse:
+        last_x, last_y = xpos, ypos
+        first_mouse = False
+
+    xoffset = xpos - last_x
+    yoffset = last_y - ypos  # XXX Note Reversed (y-coordinates go from bottom to top)
+    last_x = xpos
+    last_y = ypos
+
+    camera.process_mouse_movement(xoffset, yoffset)
 
 
 if __name__ == '__main__':
-    # XXX Note cursor=False (tells GLFW to capture our mouse)
-    win = Window(800, 600, "LearnOpenGL", cursor=False)
-    win.show()
+    main()
