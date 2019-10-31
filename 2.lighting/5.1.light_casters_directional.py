@@ -3,7 +3,7 @@ import math
 import glfw
 import OpenGL.GL as gl
 from pyrr import Vector3, Matrix44, matrix44
-from ctypes import c_float, c_uint, sizeof, c_void_p, pointer
+from ctypes import c_float, sizeof, c_void_p
 
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -221,9 +221,9 @@ def main():
         glfw.swap_buffers(window)
         glfw.poll_events()
 
-    gl.glDeleteVertexArrays(1, pointer(c_uint(cube_vao)))
-    gl.glDeleteVertexArrays(1, pointer(c_uint(light_vao)))
-    gl.glDeleteBuffers(1, pointer(c_uint(vbo)))
+    gl.glDeleteVertexArrays(1, id(cube_vao))
+    gl.glDeleteVertexArrays(1, id(light_vao))
+    gl.glDeleteBuffers(1, id(vbo))
     glfw.terminate()
 
 
