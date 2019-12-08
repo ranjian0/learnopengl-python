@@ -56,17 +56,16 @@ CURDIR = os.path.dirname(__file__)
 
 includes = [
     np.get_include(),
-    os.path.join(CURDIR, 'lib', 'assimp'),
+    os.path.join(CURDIR, 'source', 'assimp'),
     os.path.join(CURDIR, 'extern', 'assimp'),
     os.path.join(CURDIR, 'extern', 'assimp', 'code'),
     os.path.join(CURDIR, 'extern', 'assimp', 'include'),
     os.path.join(CURDIR, 'extern', 'assimp', 'include', 'assimp')
-    # os.path.join(CURDIR, 'extern', 'assimp', 'assimp'),
 ]
 
 
 sources = [
-    os.path.join(CURDIR, 'lib', 'assimp', 'all.pyx')
+    os.path.join(CURDIR, 'source', 'assimp', 'all.pyx')
 ]
 
 for path, dirs, files in os.walk(os.path.join(CURDIR, 'extern', 'assimp', 'code')):
@@ -140,7 +139,7 @@ setup(
     install_requires=['numpy'],
     packages=["assimp"],
     ext_modules=cythonize([
-        Extension('lib.assimp.all', sources,
+        Extension('source.assimp.all', sources,
                   language="c++",
                   include_dirs=includes,
                   define_macros=assimp_options)
