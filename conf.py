@@ -1,7 +1,6 @@
 import os
 import numpy as np
 from glob import glob
-# from pathlib import Path
 
 
 CURDIR = os.path.abspath(os.path.dirname(__file__))
@@ -18,7 +17,6 @@ ASSIMP_INCLUDE_DIRS = [
     os.path.join(CURDIR, 'extern', 'assimp', 'include'),
     os.path.join(CURDIR, 'extern', 'assimp', 'include', 'assimp')
 ]
-print(ASSIMP_INCLUDE_DIRS)
 
 
 ASSIMP_DEFINES = [
