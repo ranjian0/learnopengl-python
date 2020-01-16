@@ -25,7 +25,3 @@ cdef extern from "types.h" nogil:
         aiReturn_SUCCESS
         aiReturn_FAILURE
         aiReturn_OUTOFMEMORY
-
-#AI_SUCCESS = aiReturn_SUCCESS
-#AI_FAILURE = aiReturn_FAILURE
-#AI_OUTOFMEMORY = aiReturn_OUTOFMEMORY
