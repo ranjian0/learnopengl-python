@@ -268,15 +268,40 @@ cdef aiNode buildNode(cScene.aiNode* node, aiNode parent):
 
 
 # -----------------------------------------------------
+TextureType_NONE = cMaterial.aiTextureType_NONE
+TextureType_DIFFUSE = cMaterial.aiTextureType_DIFFUSE
+TextureType_SPECULAR = cMaterial.aiTextureType_SPECULAR
+TextureType_AMBIENT = cMaterial.aiTextureType_AMBIENT
+TextureType_EMISSIVE = cMaterial.aiTextureType_EMISSIVE
+TextureType_HEIGHT = cMaterial.aiTextureType_HEIGHT
+TextureType_NORMALS = cMaterial.aiTextureType_NORMALS
+TextureType_SHININESS = cMaterial.aiTextureType_SHININESS
+TextureType_OPACITY = cMaterial.aiTextureType_OPACITY
+TextureType_DISPLACEMENT = cMaterial.aiTextureType_DISPLACEMENT
+TextureType_LIGHTMAP = cMaterial.aiTextureType_LIGHTMAP
+TextureType_REFLECTION = cMaterial.aiTextureType_REFLECTION
+TextureType_UNKNOWN = cMaterial.aiTextureType_UNKNOWN
 
 cdef class aiMaterial:
     cdef readonly dict properties
+    cdef dict texture_counts
+    cdef dict textures
 
     def __init__(self):
+        self.textures = {}
         self.properties = {}
+        self.texture_counts = {}
 
     def __repr__(self):
         return self.properties.get('NAME', '')
+
+    def GetTextureCount(self, _type):
+        return self.texture_counts.get(_type, 0)
+
+    def GetTexture(self, _type, idx):
+        texts = self.textures.get(_type, None)
+        if texts and len(texts) > idx:
+            return texts[idx]
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -286,6 +311,8 @@ cdef aiMaterial buildMaterial(cMaterial.aiMaterial* mat):
     cdef dataStorageF pvalF
     cdef dataStorageI pvalI
     cdef cTypes.aiString* pvalS
+    cdef cTypes.aiString tex_path
+    cdef unsigned int tex_count = 0
     cdef unsigned int pvalsize, i, j = 0
     cdef int res = 0
     cdef object propval = None
@@ -336,6 +363,35 @@ cdef aiMaterial buildMaterial(cMaterial.aiMaterial* mat):
     del (prop)
     pvalS = NULL
     del (pvalS)
+
+    # -- set textures and texture counts
+    TexTypes = [
+        cMaterial.aiTextureType_NONE,
+        cMaterial.aiTextureType_DIFFUSE,
+        cMaterial.aiTextureType_SPECULAR,
+        cMaterial.aiTextureType_AMBIENT,
+        cMaterial.aiTextureType_EMISSIVE,
+        cMaterial.aiTextureType_HEIGHT,
+        cMaterial.aiTextureType_NORMALS,
+        cMaterial.aiTextureType_SHININESS,
+        cMaterial.aiTextureType_OPACITY,
+        cMaterial.aiTextureType_DISPLACEMENT,
+        cMaterial.aiTextureType_LIGHTMAP,
+        cMaterial.aiTextureType_REFLECTION,
+        cMaterial.aiTextureType_UNKNOWN,
+    ]
+
+    for ttype in TexTypes:
+        tex_count = cMaterial.aiGetMaterialTextureCount(mat, ttype)
+        nMat.texture_counts[ttype] = tex_count
+
+        nMat.textures[ttype] = list()
+        for i in range(tex_count):
+            cMaterial.aiGetMaterialTexture(
+                mat, ttype, i, &tex_path, NULL, NULL, NULL, NULL, NULL, NULL
+            )
+            nMat.textures[ttype].append(str(tex_path.data.decode('utf8')))
+
 
     return nMat
 

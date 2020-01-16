@@ -2,8 +2,7 @@ from cTypes cimport *
 
 cdef extern from "mesh.h" nogil:
     cdef const char* _AI_DEFAULT_MATERIAL_NAME 'AI_DEFAULT_MATERIAL_NAME'
-    #cdef const tup _AI_MATKEY_NAME 'AI_MATKEY_NAME'
-    
+
     cdef cppclass aiMaterialProperty:
         aiString mKey
         unsigned int mSemantic
@@ -11,7 +10,7 @@ cdef extern from "mesh.h" nogil:
         unsigned int mDataLength
         aiPropertyTypeInfo mType
         char* mData
-    
+
         aiMaterialProperty()
 
 
@@ -23,16 +22,18 @@ cdef extern from "mesh.h" nogil:
         aiMaterial()
 
 
-    #cdef aiReturn aiGetMaterialTexture(const aiMaterial* mat,
-    #                                    aiTextureType type,
-    #                                    unsigned int  index,
-    #                                    aiString* path,
-    #                                    aiTextureMapping* mapping,
-    #                                    unsigned int* uvindex	,
-    #                                    float* blend			,
-    #                                    aiTextureOp* op			,
-    #                                    aiTextureMapMode* mapmode,
-    #                                    unsigned int* flags       )
+    cdef unsigned int aiGetMaterialTextureCount(const aiMaterial* pMat, aiTextureType type);
+
+    cdef aiReturn aiGetMaterialTexture(const aiMaterial* mat,
+                                        aiTextureType type,
+                                        unsigned int  index,
+                                        aiString* path,
+                                        aiTextureMapping* mapping,
+                                        unsigned int* uvindex	,
+                                        float* blend			,
+                                        aiTextureOp* op			,
+                                        aiTextureMapMode* mapmode,
+                                        unsigned int* flags)
 
     cdef aiReturn aiGetMaterialString(const aiMaterial* pMat,
                                         const char* pKey,
@@ -92,6 +93,13 @@ cdef extern from "mesh.h" nogil:
         aiTextureMapping_BOX
         aiTextureMapping_PLANE
         aiTextureMapping_OTHER
+
+    cdef enum aiTextureMapMode:
+        aiTextureMapMode_Wrap
+        aiTextureMapMode_Clamp
+        aiTextureMapMode_Decal
+        aiTextureMapMode_Mirror
+
 
 
 
