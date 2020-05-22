@@ -1,84 +1,76 @@
 import os
+import time
 import assimp
 import OpenGL.GL as gl
+import itertools as it
 from PIL import Image
-from pprint import pformat
-from mesh import vec2, vec3, Vertex, Texture, Mesh
+from mesh import Texture, Mesh
+from ctypes import c_uint, c_float, sizeof, c_void_p
 
 
 class Model:
 
     def __init__(self, path, gamma=False):
-
+        self.path = path
         self.textures_loaded = set()
         self.meshes = list()
         self.directory = ""
         self.gamma_correction = gamma
 
-        self._load_model(path)
-
-    def __repr__(self):
-        return "Model<meshs={}>".format(pformat(self.meshes))
+        self._load_model()
 
     def draw(self, shader):
         for mesh in self.meshes:
             mesh.draw(shader)
 
-    def _load_model(self, path):
-        PP = assimp.aiPostProcessSteps
-        post_process = (PP.aiProcess_Triangulate |
-                        PP.aiProcess_FlipUVs |
-                        PP.aiProcess_CalcTangentSpace)
-        scene = assimp.aiImportFile(path, post_process)
-        if not scene or not scene.mRootNode:
+    def unpack_data_to_c(self, data, ctype=c_float):
+        unpacked = list(it.chain.from_iterable(data))
+        return (ctype * len(unpacked))(*unpacked)
+
+    def interweave(self, *items):
+        result = []
+        num_items = max(len(it) for it in items)
+        for i in range(num_items):
+            result.append([x for it in items for x in it[i]])
+        return result
+
+    def _load_model(self):
+        path = self.path
+        start_time = time.time()
+
+        post_process = (assimp.Process_Triangulate |
+                        assimp.Process_FlipUVs |
+                        assimp.Process_CalcTangentSpace)
+        scene = assimp.ImportFile(path, post_process)
+        if not scene:
             raise ValueError("ERROR:: Assimp model failed to load, {}".format(path))
-            return
 
         self.directory = os.path.dirname(path)
-        self._process_node(scene.mRootNode, scene)
+        for m in scene.meshes:
+            self.meshes.append(self._process_mesh(m, scene))
 
-    def _process_node(self, node, scene):
-        # process each mesh located at the current node
-        for i in range(node.mNumMeshes):
-            # the node object only contains indices to index the actual objects in the scene.
-            # the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
-            mesh = scene.mMeshes[node.mMeshes[i]]
-            self.meshes.append(self._process_mesh(mesh, scene))
-
-        # -- recursively process child nodes
-        for i in range(node.mNumChildren):
-            self._process_node(node.mChildren[i], scene)
+        print("Took {}s to load model {}".format(
+                round(time.time()-start_time, 3), os.path.basename(path)))
 
     def _process_mesh(self, mesh, scene):
-        vertices, indices, textures = [], [], []
+        texcoords = []
+        if mesh.num_uv_components[0] == 2:
+            texcoords = [(x, y) for x, y, x in mesh.texcoords[0]]
 
-        # Walk through mesh's vertices
-        for i in range(mesh.mNumVertices):
-            px, py, pz = mesh.mVertices[i]
-            nx, ny, nz = mesh.mNormals[i]
+        vertex_data = [
+            mesh.vertices,
+            mesh.normals,
+            texcoords,
+            mesh.tangents,
+            mesh.bitangents
+        ]
 
-            # -- if we have texture coords
-            tx, ty = 0.0, 0.0
-            if mesh.mTextureCoords[0].any():
-                tx, ty = mesh.mTextureCoords[0][i]
-
-            tanx, tany, tanz = mesh.mTangents[i]
-            bitanx, bitany, bitanz = mesh.mBitangents[i]
-
-            vertices.append(Vertex(
-                p=vec3(px, py, pz),
-                n=vec3(nx, ny, nz),
-                tc=vec2(tx, ty),
-                tn=vec3(tanx, tany, tanz),
-                bt=vec3(bitanx, bitany, bitanz))
-            )
-
-        # walk through mesh faces and retrieve indices
-        for i in range(mesh.mNumFaces):
-            indices.extend(list(mesh.mFaces[i]))
+        indices = self.unpack_data_to_c(mesh.faces, ctype=c_uint)
+        data = self.unpack_data_to_c(self.interweave(*vertex_data))
 
         # process materials
-        material = scene.mMaterials[mesh.mMaterialIndex]
+        textures = []
+        material = scene.materials[mesh.material_index]
 
         # we assume a convention for sampler names in the shaders. Each diffuse texture should be named
         # as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER.
@@ -107,25 +99,26 @@ class Model:
             material, assimp.TextureType_AMBIENT, "texture_height")
         textures.extend(height_maps)
 
-        return Mesh(vertices, indices, textures)
+        return Mesh(data, indices, textures)
 
     def _load_material_textures(self, mat, type, type_name):
         textures = []
 
-        for i in range(mat.GetTextureCount(type)):
-            path = mat.GetTexture(type, i)
+        paths = mat["TEXTURES"].get(type)
+        if paths:
+            for p in paths:
 
-            skip = False
-            for tex in self.textures_loaded:
-                if path == tex.path:
+                skip = False
+                for tex in self.textures_loaded:
+                    if p == tex.path:
+                        textures.append(tex)
+                        skip = True
+                        break
+
+                if not skip:
+                    tex = Texture(TextureFromFile(p, self.directory), type_name, p)
                     textures.append(tex)
-                    skip = True
-                    break
-
-            if not skip:
-                tex = Texture(TextureFromFile(path, self.directory), type_name, path)
-                textures.append(tex)
-                self.textures_loaded.add(tex)
+                    self.textures_loaded.add(tex)
 
         return textures
 
