@@ -416,7 +416,7 @@ static PyObject* ImportFile(PyObject *self, PyObject *args) {
 
     // Load the scene
     const struct aiScene *scene = aiImportFile(filename, flags);
-    if (!scene || !scene->mRootNode) {
+    if (!scene || !scene->mRootNode || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE) {
         PyErr_SetString(PyExc_ValueError, "Could not Import the file!");
         return (PyObject*)NULL;
     }
