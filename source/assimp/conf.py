@@ -1,21 +1,16 @@
 import os
-import numpy as np
 from glob import glob
 
 
 CURDIR = os.path.abspath(os.path.dirname(__file__))
 
-ASSIMP_SOURCES = [
-    os.path.join(CURDIR, 'source', 'assimp', 'all.pyx')
-] + glob(os.path.join(CURDIR, 'extern', 'assimp', 'code') + '/**/*.cpp', recursive=True)
+ASSIMP_SOURCES = glob(os.path.join(CURDIR, 'assimp', 'code') + '/**/*.cpp', recursive=True)
 
 ASSIMP_INCLUDE_DIRS = [
-    np.get_include(),
-    os.path.join(CURDIR, 'source', 'assimp'),
-    os.path.join(CURDIR, 'extern', 'assimp'),
-    os.path.join(CURDIR, 'extern', 'assimp', 'code'),
-    os.path.join(CURDIR, 'extern', 'assimp', 'include'),
-    os.path.join(CURDIR, 'extern', 'assimp', 'include', 'assimp')
+    os.path.join(CURDIR, 'assimp'),
+    os.path.join(CURDIR, 'assimp', 'code'),
+    os.path.join(CURDIR, 'assimp', 'include'),
+    os.path.join(CURDIR, 'assimp', 'include', 'assimp')
 ]
 
 
