@@ -17,7 +17,7 @@ SRC_WIDTH = 800
 SRC_HEIGHT = 600
 
 # -- camera
-camera = Camera(Vector3([0.0, 0.0, 0.0]))
+camera = Camera(Vector3([0.0, 0.0, 3.0]))
 last_x = SRC_WIDTH / 2
 last_y = SRC_HEIGHT / 2
 first_mouse = True
@@ -82,7 +82,7 @@ def main():
 
         # -- world transformation
         modelm = Matrix44.identity()
-        modelm *= Matrix44.from_translation([0.0, -1.75, 0.0])
+        modelm *= Matrix44.from_translation([0.0, -0.75, 0.0])
         modelm *= Matrix44.from_scale([0.2, 0.2, 0.2])
         model_shader.set_mat4("model", modelm)
 
