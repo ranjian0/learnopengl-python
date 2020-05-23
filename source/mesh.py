@@ -1,5 +1,5 @@
 import OpenGL.GL as gl
-from ctypes import c_uint, c_float, sizeof, c_void_p
+from ctypes import c_float, sizeof, c_void_p
 
 
 class Texture:
@@ -15,6 +15,7 @@ class Texture:
 class Mesh:
     def __init__(self, data, indices, textures=None):
         self.data = data
+        self.indices_size = 0
         self.indices = indices
         self.textures = textures
 
@@ -52,7 +53,7 @@ class Mesh:
             gl.glBindTexture(gl.GL_TEXTURE_2D, texture.id)
 
         gl.glBindVertexArray(self.vao)
-        gl.glDrawElements(gl.GL_TRIANGLES, len(self.indices) // 3, gl.GL_UNSIGNED_INT, 0)
+        gl.glDrawElements(gl.GL_TRIANGLES, self.indices_size, gl.GL_UNSIGNED_INT, 0)
         gl.glBindVertexArray(0)
         gl.glActiveTexture(gl.GL_TEXTURE0)
 
@@ -64,6 +65,7 @@ class Mesh:
         gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self._vbo)
         gl.glBufferData(gl.GL_ARRAY_BUFFER, sizeof(self.data), self.data, gl.GL_STATIC_DRAW)
 
+        self.indices_size = len(list(self.indices))
         gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, self._ebo)
         gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, sizeof(self.indices), self.indices, gl.GL_STATIC_DRAW)
 
