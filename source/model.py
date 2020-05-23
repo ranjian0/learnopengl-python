@@ -5,7 +5,7 @@ import OpenGL.GL as gl
 import itertools as it
 from PIL import Image
 from mesh import Texture, Mesh
-from ctypes import c_uint, c_float, sizeof, c_void_p
+from ctypes import c_uint, c_float
 
 
 class Model:
