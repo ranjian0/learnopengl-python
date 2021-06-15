@@ -1,8 +1,9 @@
 import os
 import time
-import assimp
 import OpenGL.GL as gl
 import itertools as it
+import assimp_py as assimp
+
 from PIL import Image
 from mesh import Texture, Mesh
 from ctypes import c_uint, c_float
