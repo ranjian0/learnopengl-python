@@ -1,4 +1,5 @@
 import time
+from OpenGL.raw.GL.VERSION.GL_1_0 import glClear, glClearColor
 import glfw
 import OpenGL.GL as gl
 
@@ -172,6 +173,8 @@ class Window:
         while not self.is_closing:
             current_time, prev_time = time.time(), current_time
             frame_time = max(current_time - prev_time, 1 / 1000)
+            glClear(clear)
+            glClearColor(*clear_color)
 
             self.on_input(self.window)
             self.on_draw(current_time - start_time, frame_time)
