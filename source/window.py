@@ -51,7 +51,7 @@ class Keys:
 class Window:
 
     keys = Keys
-    gl_version = (4, 2)
+    gl_version = (3, 3)
 
     def __init__(
         self,
