@@ -5,12 +5,9 @@ from pathlib import Path
 from pyrr import Vector3, Matrix44
 
 CURDIR = Path(__file__).absolute().parent
-PARDIR = CURDIR.parent
-RESDIR = PARDIR.parent.joinpath("resources")
+RESDIR = CURDIR.parent.parent.joinpath("resources")
 
-SHADERS = CURDIR / "shaders"
-
-sys.path.append(str(PARDIR))
+sys.path.append(str(CURDIR.parent))
 from model import Model
 from shader import Shader
 from camera import Camera, CameraMovement
@@ -55,7 +52,7 @@ def main():
     gl.glEnable(gl.GL_DEPTH_TEST)
 
     model = Model(str(RESDIR.joinpath("objects/nanosuit/nanosuit.obj")))
-    model_shader = Shader(str(SHADERS / "model_loading.vs"), str(SHADERS / "model_loading.fs"))
+    model_shader = Shader(str(CURDIR / "shaders/model_loading.vs"), str(CURDIR / "shaders/model_loading.fs"))
     # draw in wireframe
     # gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)
     # sys.exit()
