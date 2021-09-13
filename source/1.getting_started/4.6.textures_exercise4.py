@@ -5,10 +5,9 @@ from PIL import Image
 from pathlib import Path
 from ctypes import c_uint, c_float, sizeof, c_void_p
 
-PARDIR = Path(__file__).absolute().parent.parent
-RESDIR = PARDIR.parent.joinpath("resources")
-
-sys.path.append(str(PARDIR))
+CURDIR = Path(__file__).parent.absolute()
+RESDIR = CURDIR.parent.parent.joinpath("resources")
+sys.path.append(str(CURDIR.parent))
 from shader import Shader
 
 
@@ -35,7 +34,7 @@ def main():
     glfw.make_context_current(window)
     glfw.set_window_size_callback(window, on_resize)
 
-    shader = Shader('shaders/4.6.texture_exercise4.vs', 'shaders/4.6.texture_exercise4.fs')
+    shader = Shader(CURDIR / 'shaders/4.6.texture_exercise4.vs', CURDIR / 'shaders/4.6.texture_exercise4.fs')
 
     vertices = [
      # positions         colors          tex_coords

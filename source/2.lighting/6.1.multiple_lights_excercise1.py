@@ -6,9 +6,9 @@ from pathlib import Path
 from pyrr import Vector3, Matrix44, matrix44
 from ctypes import c_float, sizeof, c_void_p
 
-PARDIR = Path(__file__).absolute().parent.parent
+CURDIR = Path(__file__).parent.absolute()
+sys.path.append(str(CURDIR.parent))
 
-sys.path.append(str(PARDIR))
 from shader import Shader
 from camera import Camera, CameraMovement
 from texture import load_texture
@@ -50,8 +50,8 @@ def main():
 
     gl.glEnable(gl.GL_DEPTH_TEST)
 
-    lamp_shader = Shader("shaders/1.lamp.vs", "shaders/6.1.lamp.fs")
-    lighting_shader = Shader("shaders/6.multiple_lights.vs", "shaders/6.multiple_lights.fs")
+    lamp_shader = Shader(CURDIR / "shaders/1.lamp.vs", CURDIR / "shaders/6.1.lamp.fs")
+    lighting_shader = Shader(CURDIR / "shaders/6.multiple_lights.vs", CURDIR / "shaders/6.multiple_lights.fs")
 
     vertices = [
         # positions        normals           texture coords

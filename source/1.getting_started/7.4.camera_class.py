@@ -7,10 +7,9 @@ from pathlib import Path
 from pyrr import Matrix44, matrix44, Vector3
 from ctypes import c_float, sizeof, c_void_p
 
-PARDIR = Path(__file__).absolute().parent.parent
-RESDIR = PARDIR.parent.joinpath("resources")
-
-sys.path.append(str(PARDIR))
+CURDIR = Path(__file__).parent.absolute()
+RESDIR = CURDIR.parent.parent.joinpath("resources")
+sys.path.append(str(CURDIR.parent))
 from shader import Shader
 from camera import Camera, CameraMovement
 
@@ -51,7 +50,7 @@ def main():
 
     gl.glEnable(gl.GL_DEPTH_TEST)
     camera = Camera(position=Vector3([0.0, 0.0, 3.0]))
-    shader = Shader('shaders/7.1.camera.vs', 'shaders/7.1.camera.fs')
+    shader = Shader(CURDIR / 'shaders/7.1.camera.vs', CURDIR / 'shaders/7.1.camera.fs')
 
     vertices = [
      # positions      tex_coords

@@ -4,8 +4,8 @@ import OpenGL.GL as gl
 from pathlib import Path
 from ctypes import c_float, sizeof, c_void_p
 
-PARDIR = Path(__file__).absolute().parent.parent
-sys.path.append(str(PARDIR))
+CURDIR = Path(__file__).parent.absolute()
+sys.path.append(str(CURDIR.parent))
 
 from shader import Shader
 
@@ -33,7 +33,7 @@ def main():
     glfw.make_context_current(window)
     glfw.set_window_size_callback(window, on_resize)
 
-    shader = Shader('shaders/3.6.shader.vs', 'shaders/3.6.shader.fs')
+    shader = Shader(CURDIR / 'shaders/3.6.shader.vs', CURDIR / 'shaders/3.6.shader.fs')
 
     data = [
         -0.5, -0.5, 0.0,

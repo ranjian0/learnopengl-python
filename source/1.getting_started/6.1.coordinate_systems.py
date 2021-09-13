@@ -7,10 +7,9 @@ from pathlib import Path
 from pyrr import Matrix44
 from ctypes import c_uint, c_float, sizeof, c_void_p
 
-PARDIR = Path(__file__).absolute().parent.parent
-RESDIR = PARDIR.parent.joinpath("resources")
-
-sys.path.append(str(PARDIR))
+CURDIR = Path(__file__).parent.absolute()
+RESDIR = CURDIR.parent.parent.joinpath("resources")
+sys.path.append(str(CURDIR.parent))
 from shader import Shader
 
 
@@ -35,7 +34,7 @@ def main():
     glfw.make_context_current(window)
     glfw.set_window_size_callback(window, on_resize)
 
-    shader = Shader('shaders/6.1.coordinate_systems.vs', 'shaders/6.1.coordinate_systems.fs')
+    shader = Shader(CURDIR / 'shaders/6.1.coordinate_systems.vs', CURDIR / 'shaders/6.1.coordinate_systems.fs')
 
     vertices = [
      # positions      tex_coords
