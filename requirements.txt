@@ -1,4 +1,4 @@
-assimp-py==1.0.4
+assimp-py==1.0.5
 glfw==2.1.0
 multipledispatch==0.6.0
 numpy==1.20.3
