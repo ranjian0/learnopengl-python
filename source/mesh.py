@@ -15,7 +15,6 @@ class Texture:
 class Mesh:
     def __init__(self, data, indices, textures=None):
         self.data = data
-        self.indices_size = 0
         self.indices = indices
         self.textures = textures
 
@@ -53,23 +52,22 @@ class Mesh:
             gl.glBindTexture(gl.GL_TEXTURE_2D, texture.id)
 
         gl.glBindVertexArray(self.vao)
-        gl.glDrawElements(gl.GL_TRIANGLES, self.indices_size, gl.GL_UNSIGNED_INT, 0)
+        gl.glDrawElements(gl.GL_TRIANGLES, len(self.indices), gl.GL_UNSIGNED_INT, c_void_p(0))
         gl.glBindVertexArray(0)
         gl.glActiveTexture(gl.GL_TEXTURE0)
 
     def _setup_mesh(self):
         self.vao = gl.glGenVertexArrays(1)
-        self._vbo = gl.glGenBuffers(1)
-        self._ebo = gl.glGenBuffers(1)
+        gl.glBindVertexArray(self.vao)
 
+        self._vbo = gl.glGenBuffers(1)
         gl.glBindBuffer(gl.GL_ARRAY_BUFFER, self._vbo)
         gl.glBufferData(gl.GL_ARRAY_BUFFER, sizeof(self.data), self.data, gl.GL_STATIC_DRAW)
 
-        self.indices_size = len(list(self.indices))
+        self._ebo = gl.glGenBuffers(1)
         gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, self._ebo)
         gl.glBufferData(gl.GL_ELEMENT_ARRAY_BUFFER, sizeof(self.indices), self.indices, gl.GL_STATIC_DRAW)
 
-        gl.glBindVertexArray(self.vao)
         # -- set vertex attibute pointers
         # -- vertex positions
         stride = 14 * sizeof(c_float)
