@@ -1,12 +1,12 @@
 import os
 import time
+import ctypes
 import OpenGL.GL as gl
 import itertools as it
 import assimp_py as assimp
 
 from PIL import Image
-from mesh import Texture, Mesh
-from ctypes import c_uint, c_float
+from mesh import Texture, Mesh, Vertex, Vec2, Vec3
 
 
 class Model:
@@ -23,18 +23,6 @@ class Model:
     def draw(self, shader):
         for mesh in self.meshes:
             mesh.draw(shader)
-
-    def unpack_data_to_c(self, data, ctype=c_float):
-        if isinstance(data[0], (list, tuple)):
-            data = list(it.chain.from_iterable(data))
-        return (ctype * len(data))(*data)
-
-    def interweave(self, *items):
-        result = []
-        num_items = max(len(it) for it in items)
-        for i in range(num_items):
-            result.append([x for it in items for x in it[i]])
-        return result
 
     def _load_model(self):
         path = self.path
@@ -55,20 +43,20 @@ class Model:
                 round(time.time()-start_time, 3), os.path.basename(path)))
 
     def _process_mesh(self, mesh, scene):
-        texcoords = []
-        if mesh.num_uv_components[0] == 2:
-            texcoords = [(x, y) for x, y, x in mesh.texcoords[0]]
-
-        vertex_data = [
-            mesh.vertices,
-            mesh.normals,
-            texcoords,
-            mesh.tangents,
-            mesh.bitangents
-        ]
-
-        indices = self.unpack_data_to_c(mesh.indices, ctype=c_uint)
-        data = self.unpack_data_to_c(self.interweave(*vertex_data))
+        vertices = (mesh.num_vertices * Vertex)()
+        for i in range(mesh.num_vertices):
+            vertices[i].Position = Vec3(*mesh.vertices[i])
+            vertices[i].Normal = Vec3(*mesh.normals[i])
+            if mesh.texcoords[0]:
+                vertices[i].TexCoords = Vec2(*mesh.texcoords[0][i][:2])
+                vertices[i].Tangent = Vec3(*mesh.tangents[i])
+                vertices[i].Bitangent = Vec3(*mesh.bitangents[i])
+            else:
+                vertices[i].TexCoords = Vec2(0, 0)
+                vertices[i].Tangent = Vec3(0, 0, 0)
+                vertices[i].Bitangent = Vec3(0, 0, 0)
+            
+        indices = (ctypes.c_uint * len(mesh.indices))(*mesh.indices)
 
         # process materials
         textures = []
@@ -101,7 +89,7 @@ class Model:
             material, assimp.TextureType_AMBIENT, "texture_height")
         textures.extend(height_maps)
 
-        return Mesh(data, indices, textures)
+        return Mesh(vertices, indices, textures)
 
     def _load_material_textures(self, mat, type, type_name):
         textures = []

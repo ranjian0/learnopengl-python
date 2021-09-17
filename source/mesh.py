@@ -1,5 +1,18 @@
 import OpenGL.GL as gl
-from ctypes import c_float, sizeof, c_void_p
+from ctypes import addressof, c_float, sizeof, c_void_p, Structure
+
+
+Vec2 = (2 * c_float)
+Vec3 = (3 * c_float)
+
+class Vertex(Structure):
+    _fields_ = [
+        ("Position",    Vec3),
+        ("Normal",      Vec3),
+        ("TexCoords",   Vec2),
+        ("Tangent",     Vec3),
+        ("Bitangent",   Vec3),
+    ]
 
 
 class Texture:
@@ -70,29 +83,29 @@ class Mesh:
 
         # -- set vertex attibute pointers
         # -- vertex positions
-        stride = 14 * sizeof(c_float)
         gl.glEnableVertexAttribArray(0)
         gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE,
-                                 stride, c_void_p(0))
+                                 sizeof(Vertex), c_void_p(Vertex.Position.offset))
 
         # -- vertex normals
         gl.glEnableVertexAttribArray(1)
         gl.glVertexAttribPointer(1, 3, gl.GL_FLOAT, gl.GL_FALSE,
-                                 stride, c_void_p(3 * sizeof(c_float)))
+                                 sizeof(Vertex), c_void_p(Vertex.Normal.offset))
 
         # -- vertex texture coords
         gl.glEnableVertexAttribArray(2)
         gl.glVertexAttribPointer(2, 2, gl.GL_FLOAT, gl.GL_FALSE,
-                                 stride, c_void_p(6 * sizeof(c_float)))
+                                 sizeof(Vertex), c_void_p(Vertex.TexCoords.offset))
 
-        # # -- vertex tangent
+        # -- vertex tangent
         gl.glEnableVertexAttribArray(3)
         gl.glVertexAttribPointer(3, 3, gl.GL_FLOAT, gl.GL_FALSE,
-                                 stride, c_void_p(8 * sizeof(c_float)))
+                                 sizeof(Vertex), c_void_p(Vertex.Tangent.offset))
 
-        # # -- vertex bitangent
+        # -- vertex bitangent
         gl.glEnableVertexAttribArray(4)
         gl.glVertexAttribPointer(4, 3, gl.GL_FLOAT, gl.GL_FALSE,
-                                 stride, c_void_p(11 * sizeof(c_float)))
+                                 sizeof(Vertex), c_void_p(Vertex.Bitangent.offset))
+
 
         gl.glBindVertexArray(0)
