@@ -85,7 +85,7 @@ def main():
 
         gl.glUseProgram(shader)
         gl.glBindVertexArray(vao)
-        gl.glDrawElements(gl.GL_TRIANGLES, 6, gl.GL_UNSIGNED_INT, c_void_p(0))
+        gl.glDrawElements(gl.GL_TRIANGLES, len(indices), gl.GL_UNSIGNED_INT, c_void_p(0))
 
         glfw.poll_events()
         glfw.swap_buffers(window)
