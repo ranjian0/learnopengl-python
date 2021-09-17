@@ -25,8 +25,9 @@ class Model:
             mesh.draw(shader)
 
     def unpack_data_to_c(self, data, ctype=c_float):
-        unpacked = list(it.chain.from_iterable(data))
-        return (ctype * len(unpacked))(*unpacked)
+        if isinstance(data[0], (list, tuple)):
+            data = list(it.chain.from_iterable(data))
+        return (ctype * len(data))(*data)
 
     def interweave(self, *items):
         result = []
@@ -66,7 +67,7 @@ class Model:
             mesh.bitangents
         ]
 
-        indices = self.unpack_data_to_c(mesh.faces, ctype=c_uint)
+        indices = self.unpack_data_to_c(mesh.indices, ctype=c_uint)
         data = self.unpack_data_to_c(self.interweave(*vertex_data))
 
         # process materials
