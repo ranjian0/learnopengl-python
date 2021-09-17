@@ -56,7 +56,8 @@ class Model:
                 vertices[i].Tangent = Vec3(0, 0, 0)
                 vertices[i].Bitangent = Vec3(0, 0, 0)
             
-        indices = (ctypes.c_uint * len(mesh.indices))(*mesh.indices)
+        idx = [i for face in mesh.indices for i in face]
+        indices = (ctypes.c_uint * len(idx))(*idx)
 
         # process materials
         textures = []
