@@ -1,8 +1,8 @@
-assimp-py==1.0.5
-glfw==2.1.0
+assimp-py==1.0.7
+glfw==2.5.5
 multipledispatch==0.6.0
-numpy==1.21.0
+numpy==1.24.1
 Pillow==9.3.0
-PyOpenGL==3.1.5
+PyOpenGL==3.1.6
 pyrr==0.10.3
 six==1.16.0
