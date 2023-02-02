@@ -1,5 +1,6 @@
 import sys
 import glfw
+import platform
 import OpenGL.GL as gl
 from pathlib import Path
 from pyrr import Vector3, Matrix44
@@ -9,6 +10,7 @@ CURDIR = Path(__file__).parent.absolute()
 sys.path.append(str(CURDIR.parent))
 
 from shader import Shader
+from texture import load_texture
 from camera import Camera, CameraMovement
 
 # -- settings
@@ -34,8 +36,10 @@ def main():
 
     glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
     glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
-
     glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+
+    if platform.system() == 'Darwin':
+        glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, gl.GL_TRUE)
 
     window = glfw.create_window(SRC_WIDTH, SRC_HEIGHT, "learnOpenGL", None, None)
     if not window:
@@ -54,62 +58,100 @@ def main():
 
     shader = Shader(CURDIR / "shaders/1.1.depth_testing.vs", CURDIR / "shaders/1.1.depth_testing.fs")
 
-    vertices = [
-        -0.5, -0.5, -0.5,
-         0.5, -0.5, -0.5,
-         0.5,  0.5, -0.5,
-         0.5,  0.5, -0.5,
-        -0.5,  0.5, -0.5,
-        -0.5, -0.5, -0.5,
+    cube_vertices = [
+        # positions        texture Coords
+        -0.5, -0.5, -0.5,  0.0, 0.0,
+         0.5, -0.5, -0.5,  1.0, 0.0,
+         0.5,  0.5, -0.5,  1.0, 1.0,
+         0.5,  0.5, -0.5,  1.0, 1.0,
+        -0.5,  0.5, -0.5,  0.0, 1.0,
+        -0.5, -0.5, -0.5,  0.0, 0.0,
 
-        -0.5, -0.5,  0.5,
-         0.5, -0.5,  0.5,
-         0.5,  0.5,  0.5,
-         0.5,  0.5,  0.5,
-        -0.5,  0.5,  0.5,
-        -0.5, -0.5,  0.5,
+        -0.5, -0.5,  0.5,  0.0, 0.0,
+         0.5, -0.5,  0.5,  1.0, 0.0,
+         0.5,  0.5,  0.5,  1.0, 1.0,
+         0.5,  0.5,  0.5,  1.0, 1.0,
+        -0.5,  0.5,  0.5,  0.0, 1.0,
+        -0.5, -0.5,  0.5,  0.0, 0.0,
 
-        -0.5,  0.5,  0.5,
-        -0.5,  0.5, -0.5,
-        -0.5, -0.5, -0.5,
-        -0.5, -0.5, -0.5,
-        -0.5, -0.5,  0.5,
-        -0.5,  0.5,  0.5,
+        -0.5,  0.5,  0.5,  1.0, 0.0,
+        -0.5,  0.5, -0.5,  1.0, 1.0,
+        -0.5, -0.5, -0.5,  0.0, 1.0,
+        -0.5, -0.5, -0.5,  0.0, 1.0,
+        -0.5, -0.5,  0.5,  0.0, 0.0,
+        -0.5,  0.5,  0.5,  1.0, 0.0,
 
-         0.5,  0.5,  0.5,
-         0.5,  0.5, -0.5,
-         0.5, -0.5, -0.5,
-         0.5, -0.5, -0.5,
-         0.5, -0.5,  0.5,
-         0.5,  0.5,  0.5,
+         0.5,  0.5,  0.5,  1.0, 0.0,
+         0.5,  0.5, -0.5,  1.0, 1.0,
+         0.5, -0.5, -0.5,  0.0, 1.0,
+         0.5, -0.5, -0.5,  0.0, 1.0,
+         0.5, -0.5,  0.5,  0.0, 0.0,
+         0.5,  0.5,  0.5,  1.0, 0.0,
 
-        -0.5, -0.5, -0.5,
-         0.5, -0.5, -0.5,
-         0.5, -0.5,  0.5,
-         0.5, -0.5,  0.5,
-        -0.5, -0.5,  0.5,
-        -0.5, -0.5, -0.5,
+        -0.5, -0.5, -0.5,  0.0, 1.0,
+         0.5, -0.5, -0.5,  1.0, 1.0,
+         0.5, -0.5,  0.5,  1.0, 0.0,
+         0.5, -0.5,  0.5,  1.0, 0.0,
+        -0.5, -0.5,  0.5,  0.0, 0.0,
+        -0.5, -0.5, -0.5,  0.0, 1.0,
 
-        -0.5,  0.5, -0.5,
-         0.5,  0.5, -0.5,
-         0.5,  0.5,  0.5,
-         0.5,  0.5,  0.5,
-        -0.5,  0.5,  0.5,
-        -0.5,  0.5, -0.5,
+        -0.5,  0.5, -0.5,  0.0, 1.0,
+         0.5,  0.5, -0.5,  1.0, 1.0,
+         0.5,  0.5,  0.5,  1.0, 0.0,
+         0.5,  0.5,  0.5,  1.0, 0.0,
+        -0.5,  0.5,  0.5,  0.0, 0.0,
+        -0.5,  0.5, -0.5,  0.0, 1.0
     ]
-    vertices = (c_float * len(vertices))(*vertices)
 
+    plane_vertices = [
+        #positions         texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
+         5.0, -0.5,  5.0,  2.0, 0.0,
+        -5.0, -0.5,  5.0,  0.0, 0.0,
+        -5.0, -0.5, -5.0,  0.0, 2.0,
+
+         5.0, -0.5,  5.0,  2.0, 0.0,
+        -5.0, -0.5, -5.0,  0.0, 2.0,
+         5.0, -0.5, -5.0,  2.0, 2.0
+    ]
+
+    # cube
+    cube_vbo = gl.glGenBuffers(1)
     cube_vao = gl.glGenVertexArrays(1)
-    vbo = gl.glGenBuffers(1)
-
-    gl.glBindBuffer(gl.GL_ARRAY_BUFFER, vbo)
-    gl.glBufferData(gl.GL_ARRAY_BUFFER, sizeof(vertices), vertices, gl.GL_STATIC_DRAW)
+    vertices = (c_float * len(cube_vertices))(*cube_vertices)
 
     gl.glBindVertexArray(cube_vao)
-
+    gl.glBindBuffer(gl.GL_ARRAY_BUFFER, cube_vbo)
+    gl.glBufferData(gl.GL_ARRAY_BUFFER, sizeof(vertices), vertices, gl.GL_STATIC_DRAW)
     # -- position attribute
-    gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE, 3 * sizeof(c_float), c_void_p(0))
+    gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE, 5 * sizeof(c_float), c_void_p(0))
     gl.glEnableVertexAttribArray(0)
+    # -- uv attribute
+    gl.glVertexAttribPointer(1, 2, gl.GL_FLOAT, gl.GL_FALSE, 5 * sizeof(c_float), c_void_p(3 * sizeof(c_float)))
+    gl.glEnableVertexAttribArray(1)
+    gl.glBindVertexArray(0)
+
+    # plane
+    plane_vbo = gl.glGenBuffers(1)
+    plane_vao = gl.glGenVertexArrays(1)
+    vertices = (c_float * len(plane_vertices))(*plane_vertices)
+
+    gl.glBindVertexArray(plane_vao)
+    gl.glBindBuffer(gl.GL_ARRAY_BUFFER, plane_vbo)
+    gl.glBufferData(gl.GL_ARRAY_BUFFER, sizeof(vertices), vertices, gl.GL_STATIC_DRAW)
+    # -- position attribute
+    gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE, 5 * sizeof(c_float), c_void_p(0))
+    gl.glEnableVertexAttribArray(0)
+    # -- uv attribute
+    gl.glVertexAttribPointer(1, 2, gl.GL_FLOAT, gl.GL_FALSE, 5 * sizeof(c_float), c_void_p(3 * sizeof(c_float)))
+    gl.glEnableVertexAttribArray(1)
+    gl.glBindVertexArray(0)
+
+    # load textures
+    cube_texture = load_texture("marble.jpg")
+    floor_texture = load_texture("metal.png")
+
+    shader.use()
+    shader.set_int('texture1', 0)
 
 
     while not glfw.window_should_close(window):
@@ -128,25 +170,38 @@ def main():
 
         # -- view.projection transformations
         shader.use()
+        model = Matrix44.identity()
         projection = Matrix44.perspective_projection(camera.zoom, SRC_WIDTH/SRC_HEIGHT, 0.1, 100.0)
         view = camera.get_view_matrix()
         shader.set_mat4("projection", projection)
         shader.set_mat4("view", view)
 
-        # -- world transformation
-        model = Matrix44.identity()
-        shader.set_mat4("model", model)
-
-        # -- render cube
+        # cube
         gl.glBindVertexArray(cube_vao)
+        gl.glActiveTexture(gl.GL_TEXTURE0)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, cube_texture)
+        model = Matrix44.from_translation((-1.0, 0.0, -1.0))
+        shader.set_mat4("model", model)
+        gl.glDrawArrays(gl.GL_TRIANGLES, 0, 36)
+        model = Matrix44.from_translation((2.0, 0.0, -1.0))
+        shader.set_mat4("model", model)
         gl.glDrawArrays(gl.GL_TRIANGLES, 0, 36)
 
+        # floor
+        gl.glBindVertexArray(plane_vao)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, floor_texture)
+        shader.set_mat4("model", Matrix44.identity())
+        gl.glDrawArrays(gl.GL_TRIANGLES, 0, 6)
+        gl.glBindVertexArray(0)
 
         glfw.swap_buffers(window)
         glfw.poll_events()
 
     gl.glDeleteVertexArrays(1, id(cube_vao))
-    gl.glDeleteBuffers(1, id(vbo))
+    gl.glDeleteBuffers(1, id(cube_vbo))
+    gl.glDeleteVertexArrays(1, id(plane_vao))
+    gl.glDeleteBuffers(1, id(plane_vbo))
+
     glfw.terminate()
 
 
