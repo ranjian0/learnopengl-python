@@ -2,7 +2,6 @@ import os
 import time
 import ctypes
 import OpenGL.GL as gl
-import itertools as it
 import assimp_py as assimp
 
 from PIL import Image

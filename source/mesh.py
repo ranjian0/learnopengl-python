@@ -1,5 +1,5 @@
 import OpenGL.GL as gl
-from ctypes import addressof, c_float, sizeof, c_void_p, Structure
+from ctypes import c_float, sizeof, c_void_p, Structure
 
 
 Vec2 = (2 * c_float)
